@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProtectEd - Admin Dashboard</title>
+    <style>
+        /* --- LAYOUT & BASICS --- */
+        body { font-family: 'Segoe UI', sans-serif; background-color: #111827; padding: 0; margin: 0; color: #333; height: 100vh; display: flex; flex-direction: column; }
+        
+        /* Header */
+        header { background-color: #1f2937; padding: 15px 30px; border-bottom: 1px solid #374151; display: flex; justify-content: space-between; align-items: center; color: white; }
+        h1 { margin: 0; font-size: 1.2rem; display: flex; align-items: center; gap: 10px; }
+        .refresh-btn { background: #4f46e5; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-size: 0.9rem; }
+        .refresh-btn:hover { background: #4338ca; }
+        .back-btn { background: #374151; color: #ccc; border: 1px solid #555; padding: 8px 15px; border-radius: 5px; cursor: pointer; margin-right: 10px; text-decoration: none; font-size: 0.9rem; }
+
+        /* Main Container */
+        .dashboard-container { display: flex; flex: 1; overflow: hidden; }
+
+        /* --- SIDEBAR (List of Reports) --- */
+        .sidebar { width: 350px; background-color: #1f2937; border-right: 1px solid #374151; overflow-y: auto; padding: 20px; }
+        .sidebar-title { color: #9ca3af; font-size: 0.85rem; text-transform: uppercase; margin-bottom: 15px; letter-spacing: 1px; font-weight: bold; }
+        
+        .report-card { 
+            background-color: #374151; padding: 15px; border-radius: 8px; 
+            margin-bottom: 10px; cursor: pointer; transition: all 0.2s; border-left: 4px solid transparent; 
+        }
+        .report-card:hover { background-color: #4b5563; }
+        .report-card.active { background-color: #2e3646; border-left-color: #4f46e5; }
+        
+        .card-header { display: flex; justify-content: space-between; margin-bottom: 5px; }
+        .card-id { color: #e5e7eb; font-weight: bold; font-size: 0.95rem; }
+        .card-date { color: #9ca3af; font-size: 0.8rem; }
+        .card-risk { font-size: 0.8rem; padding: 2px 8px; border-radius: 10px; font-weight: bold; display: inline-block; }
+        
+        /* Badges */
+        .badge-red { background: rgba(220, 38, 38, 0.2); color: #fca5a5; }
+        .badge-orange { background: rgba(234, 88, 12, 0.2); color: #fdba74; }
+        .badge-yellow { background: rgba(202, 138, 4, 0.2); color: #fde047; }
+        .badge-green { background: rgba(22, 163, 74, 0.2); color: #86efac; }
+
+        /* --- MAIN CONTENT (The Report View) --- */
+        .main-view { flex: 1; background-color: #f3f4f6; overflow-y: auto; padding: 40px; }
+        .report-container { max-width: 800px; margin: 0 auto; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+
+        /* Reusing Styles from User App for Consistency */
+        .result-banner { padding: 25px; border-radius: 8px; text-align: center; color: white; margin-bottom: 30px; }
+        .bg-red { background-color: #dc2626; }
+        .bg-orange { background-color: #ea580c; }
+        .bg-yellow { background-color: #ca8a04; color: black; }
+        .bg-green { background-color: #16a34a; }
+        
+        .ai-box { background-color: #f0fdf4; border: 1px solid #bbf7d0; padding: 20px; border-radius: 8px; margin-top: 20px; }
+        .ai-box.risk { background-color: #fef2f2; border-color: #fecaca; }
+        
+        .section-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
+        .section-card { padding: 15px; border-radius: 8px; border: 1px solid #eee; background: #f9fafb; }
+        
+        /* Empty State */
+        .empty-state { text-align: center; color: #6b7280; margin-top: 100px; }
+        
+        /* Confidence Bar */
+        .progress-container { width: 100%; background-color: #e5e7eb; border-radius: 10px; margin-top: 10px; height: 12px; overflow: hidden; }
+        .progress-bar { height: 100%; background-color: #4f46e5; width: 0%; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>🛡️ ProtectEd Admin</h1>
+    <div>
+        <a href="index.html" class="back-btn">Exit Dashboard</a>
+        <button class="refresh-btn" onclick="loadData()">↻ Refresh List</button>
+    </div>
+</header>
+
+<div class="dashboard-container">
+    
+    <!-- LEFT SIDEBAR -->
+    <div class="sidebar">
+        <div class="sidebar-title">Recent Assessments</div>
+        <div id="reportList">
+            <!-- JavaScript will populate cards here -->
+            <div style="color: #6b7280; text-align: center; padding-top: 20px;">Loading...</div>
+        </div>
+    </div>
+
+    <!-- MAIN REPORT VIEW -->
+    <div class="main-view">
+        <div id="emptyState" class="empty-state">
+            <h2>Select a report from the sidebar</h2>
+            <p>Click on any card on the left to view the full AI assessment details.</p>
+        </div>
+
+        <div id="reportDetail" style="display: none;" class="report-container">
+            
+            <!-- 1. GENERAL BANNER -->
+            <div id="detailBanner" class="result-banner">
+                <h2 style="margin:0;">General Analysis</h2>
+                <h3 id="detailCategory" style="margin: 10px 0 0 0;">-</h3>
+                <p id="detailRisk" style="font-weight: bold; margin-top: 5px;">Risk Level: -</p>
+            </div>
+
+            <!-- 2. AI DIAGNOSTICS -->
+            <div id="detailAIBox" class="ai-box">
+                <h4 style="margin-top: 0; color: #4f46e5;">🧠 AI Diagnostics</h4>
+                <p><strong>Primary Engine:</strong> <span id="detailMethod">-</span></p>
+                <p><strong>Confidence:</strong> <span id="detailConfText">0%</span></p>
+                <div class="progress-container">
+                    <div id="detailConfBar" class="progress-bar"></div>
+                </div>
+            </div>
+
+            <!-- 3. SECTION BREAKDOWN -->
+            <h3 style="margin-top: 30px; border-bottom: 1px solid #eee; padding-bottom: 10px;">📊 Section Breakdown</h3>
+            <div id="detailSections" class="section-grid">
+                <!-- Cards injected here -->
+            </div>
+
+            <!-- 4. ADVICE -->
+            <h3 style="margin-top: 30px;">💡 Recommendation</h3>
+            <p id="detailAdvice" style="font-size: 1.1em; line-height: 1.6; color: #4b5563;">-</p>
+            
+            <div style="margin-top: 40px; border-top: 1px solid #eee; padding-top: 20px; font-size: 0.8em; color: #999;">
+                Assessment ID: <span id="metaID"></span> | Timestamp: <span id="metaTime"></span>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    let allReports = [];
+
+    async function loadData() {
+        const listContainer = document.getElementById('reportList');
+        // Reset list style for potential errors
+        listContainer.innerHTML = "<div style='color: #6b7280; text-align: center; padding-top: 20px;'>Loading...</div>";
+
+        try {
+            // Attempt to fetch from local Python API
+            const response = await fetch('http://127.0.0.1:5000/admin/data');
+            
+            if (!response.ok) {
+                throw new Error(`Server returned ${response.status} ${response.statusText}`);
+            }
+            
+            allReports = await response.json();
+            listContainer.innerHTML = ""; // Clear list
+
+            if (allReports.length === 0) {
+                listContainer.innerHTML = "<div style='color:#9ca3af; text-align:center;'>No records found in database.</div>";
+                return;
+            }
+
+            allReports.forEach((report, index) => {
+                // Determine Badge Color for Sidebar
+                let badgeClass = "badge-green";
+                if (report.risk_level.includes("Severe") || report.risk_level.includes("High")) badgeClass = "badge-red";
+                else if (report.risk_level.includes("Moderate")) badgeClass = "badge-yellow";
+
+                const card = document.createElement('div');
+                card.className = "report-card";
+                card.onclick = () => selectReport(index);
+                card.innerHTML = `
+                    <div class="card-header">
+                        <span class="card-id">#${report.id}</span>
+                        <span class="card-date">${formatDate(report.timestamp)}</span>
+                    </div>
+                    <div style="color: #d1d5db; font-size: 0.85rem; margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        ${report.main_category}
+                    </div>
+                    <div class="card-risk ${badgeClass}">${report.risk_level}</div>
+                `;
+                listContainer.appendChild(card);
+            });
+
+        } catch (error) {
+            console.error("Connection Error:", error);
+            
+            let errorHtml = `
+                <div style='color:#ef4444; background: rgba(239, 68, 68, 0.1); padding: 15px; border-radius: 8px; font-size: 0.9em; text-align: center;'>
+                    <strong>Connection Failed</strong><br><br>
+                    Is <code>api.py</code> running?<br>
+                    Are you using the Preview?<br><br>
+                    <small>Please download this file and open it directly on your computer to allow connection to localhost.</small>
+                </div>
+            `;
+            listContainer.innerHTML = errorHtml;
+        }
+    }
+
+    function selectReport(index) {
+        const data = allReports[index];
+        const full = data.full_report;
+        const gen = full.general;
+
+        // Highlight active card
+        document.querySelectorAll('.report-card').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.report-card')[index].classList.add('active');
+
+        // Show View, Hide Empty State
+        document.getElementById('emptyState').style.display = 'none';
+        document.getElementById('reportDetail').style.display = 'block';
+
+        // 1. Populate Banner
+        document.getElementById('detailCategory').innerText = gen.category;
+        document.getElementById('detailRisk').innerText = "Risk Level: " + gen.risk;
+        
+        // Remove old bg classes and add new one
+        const banner = document.getElementById('detailBanner');
+        banner.className = "result-banner"; // reset
+        if (gen.color === "red") banner.classList.add('bg-red');
+        else if (gen.color === "orange") banner.classList.add('bg-orange');
+        else if (gen.color === "yellow") banner.classList.add('bg-yellow');
+        else banner.classList.add('bg-green');
+
+        // 2. Populate AI Diagnostics
+        document.getElementById('detailMethod').innerText = gen.method;
+        document.getElementById('detailConfText').innerText = gen.confidence + "%";
+        document.getElementById('detailConfBar').style.width = gen.confidence + "%";
+        
+        const aiBox = document.getElementById('detailAIBox');
+        if (gen.risk.includes("High") || gen.risk.includes("Severe")) aiBox.classList.add('risk');
+        else aiBox.classList.remove('risk');
+
+        // 3. Populate Sections
+        const sectionContainer = document.getElementById('detailSections');
+        sectionContainer.innerHTML = "";
+        
+        for (const [name, info] of Object.entries(full.breakdown)) {
+            let colorStyle = "#16a34a"; // green
+            if (info.color === "red") colorStyle = "#dc2626";
+            if (info.color === "orange") colorStyle = "#ea580c";
+            if (info.color === "yellow") colorStyle = "#ca8a04";
+
+            const div = document.createElement('div');
+            div.className = "section-card";
+            div.innerHTML = `
+                <h4 style="margin:0 0 5px 0;">${name}</h4>
+                <div style="font-size:0.8rem; font-weight:bold; color:white; background:${colorStyle}; display:inline-block; padding:2px 8px; border-radius:4px;">
+                    ${info.risk}
+                </div>
+                <p style="font-size:0.9rem; margin-top:8px; color:#555;">${info.category}</p>
+            `;
+            sectionContainer.appendChild(div);
+        }
+
+        // 4. Populate Advice & Meta
+        document.getElementById('detailAdvice').innerText = gen.advice;
+        document.getElementById('metaID').innerText = data.id;
+        document.getElementById('metaTime').innerText = data.timestamp;
+    }
+
+    function formatDate(dateString) {
+        // Simple formatter to make "2023-11-21 14:00:00" look nicer
+        try {
+            const d = new Date(dateString);
+            return d.toLocaleDateString() + " " + d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        } catch (e) { return dateString; }
+    }
+
+    // Initialize
+    loadData();
+</script>
+
+</body>
+</html>

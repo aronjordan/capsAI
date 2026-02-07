@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProtectEd - Assessment</title>
+    <style>
+        /* --- CSS STYLING --- */
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f3f4f6; padding: 20px; color: #333; }
+        .container { max-width: 950px; margin: 0 auto; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); position: relative; }
+        
+        /* Admin Button Styling */
+        .admin-btn {
+            position: absolute; top: 20px; right: 20px;
+            background: #374151; color: white; padding: 8px 15px;
+            font-size: 0.8em; border-radius: 20px; border: none; cursor: pointer;
+            opacity: 0.7; transition: opacity 0.3s;
+        }
+        .admin-btn:hover { opacity: 1; }
+
+        /* Modal Styling */
+        .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
+        .modal-content { background-color: white; margin: 15% auto; padding: 20px; border-radius: 8px; width: 300px; text-align: center; }
+        .modal input { padding: 10px; width: 80%; margin-bottom: 15px; margin-top: 10px; }
+        
+        h1 { color: #4f46e5; text-align: center; margin-bottom: 5px; }
+        .subtitle { text-align: center; color: #6b7280; margin-bottom: 30px; }
+        
+        /* Section Headers */
+        .section-header { background-color: #eef2ff; padding: 20px; border-radius: 8px; margin-top: 40px; margin-bottom: 20px; border-left: 5px solid #4f46e5; }
+        .section-header h3 { margin: 0; color: #4f46e5; font-size: 1.2em; }
+        .section-header p { margin: 5px 0 0 0; font-size: 0.95em; color: #555; }
+
+        /* Grid Layout */
+        .question-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+        .question-box { background: #f9fafb; padding: 15px; border-radius: 8px; border: 1px solid #e5e7eb; display: flex; flex-direction: column; justify-content: space-between; }
+        .question-text { font-weight: 600; margin-bottom: 10px; font-size: 0.9em; color: #1f2937; }
+        select { padding: 10px; border-radius: 6px; border: 1px solid #d1d5db; background: white; width: 100%; font-size: 0.95em; }
+
+        /* Buttons */
+        .hidden { display: none; }
+        .btn { background-color: #4f46e5; color: white; padding: 15px 30px; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: 600; width: 100%; margin-top: 30px; transition: background 0.2s; }
+        .btn:hover { background-color: #4338ca; transform: translateY(-1px); }
+        .btn-secondary { background-color: #e5e7eb; color: #374151; margin-top: 15px; }
+        .btn-secondary:hover { background-color: #d1d5db; }
+        
+        /* Success Message Styling */
+        .success-box {
+            text-align: center; padding: 40px 20px;
+        }
+        .checkmark-circle {
+            width: 80px; height: 80px; background: #d1fae5; border-radius: 50%; margin: 0 auto 20px auto;
+            display: flex; align-items: center; justify-content: center; color: #059669; font-size: 40px;
+        }
+        
+        @media (max-width: 768px) { .question-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    
+    <!-- Admin Button -->
+    <button class="admin-btn" onclick="openAdminModal()">🔒 Admin Access</button>
+
+    <div id="header">
+        <h1>🛡️ ProtectEd</h1>
+        <p class="subtitle">Comprehensive VAWC Screening & Risk Assessment</p>
+    </div>
+
+    <!-- STEP 1: THE QUIZ -->
+    <div id="step-1">
+        <form id="quizForm">
+            
+            <!-- SECTION A -->
+            <div class="section-header">
+                <h3>✅ Section A: Possible Victim Indicators</h3>
+                <p>Detects emotional, physical, sexual, and economic abuse patterns.</p>
+            </div>
+            <div class="question-grid">
+                <div class="question-box">
+                    <label class="question-text">1. Do you often feel afraid of your partner or someone at home?</label>
+                    <select class="q-input" data-template="I often feel afraid of my partner or someone at home.">
+                        <option value="Never">Never</option><option value="Sometimes">Sometimes</option><option value="Always">Always</option>
+                    </select>
+                </div>
+                <div class="question-box">
+                    <label class="question-text">2. Has anyone close to you ever insulted, belittled, or humiliated you?</label>
+                    <select class="q-input" data-template="Someone close to me insults, belittles, and humiliates me.">
+                        <option value="Never">Never</option><option value="Sometimes">Sometimes</option><option value="Always">Always</option>
+                    </select>
+                </div>
+                <div class="question-box">
+                    <label class="question-text">3. Do you feel pressured to obey rules you did not agree with?</label>
+                    <select class="q-input" data-template="I feel pressured to obey rules I did not agree with.">
+                        <option value="Never">Never</option><option value="Sometimes">Sometimes</option><option value="Always">Always</option>
+                    </select>
+                </div>
+                <div class="question-box">
+                    <label class="question-text">4. Has someone ever prevented you from meeting friends or family?</label>
+                    <select class="q-input" data-template="Someone prevents me from meeting friends and family.">
+                        <option value="Never">Never</option><option value="Sometimes">Sometimes</option><option value="Always">Always</option>
+                    </select>
+                </div>
+                <div class="question-box">
+                    <label class="question-text">5. Has anyone monitored your phone/messages without permission?</label>
+                    <select class="q-input" data-template="Someone monitors my phone and messages without permission.">
+                        <option value="Never">Never</option><option value="Sometimes">Sometimes</option><option value="Always">Always</option>
+                    </select>
+                </div>
+                <div class="question-box">
+                    <label class="question-text">6. Has someone threatened to harm you if you disobey them?</label>
+                    <select class="q-input" data-template="Someone threatens to harm me if I disobey.">
+                        <option value="Never">Never</option><option value="Sometimes">Sometimes</option><option value="Always">Always</option>
+                    </select>
+                </div>
+                <div class="question-box">
+                    <label class="question-text">7. Has anyone ever pushed, slapped, hit, or physically hurt you?</label>
+                    <select class="q-input" data-template="Someone has pushed, slapped, hit, and physically hurt me.">
+                        <option value="Never">Never</option><option value="Once">Once</option><option value="Multiple Times">Multiple Times</option>
+                    </select>
+                </div>
+                <div class="question-box">
+                    <label class="question-text">8. Has anyone forced you to do sexual activities you disliked?</label>
+                    <select class="q-input" data-template="Someone forced me to do sexual activities I was uncomfortable with.">
+                        <option value="Never">Never</option><option value="Once">Once</option><option value="Multiple Times">Multiple Times</option>
+                    </select>
+                </div>
+                <div class="question-box">
+                    <label class="question-text">9. Do you feel controlled, restricted, or manipulated?</label>
+                    <select class="q-input" data-template="I feel controlled, restricted, and manipulated in my relationship.">
+                        <option value="Never">Never</option><option value="Sometimes">Sometimes</option><option value="Always">Always</option>
+                    </select>
+                </div>
+                <div class="question-box">
+                    <label class="question-text">10. Has someone prevented you from having your own money?</label>
+                    <select class="q-input" data-template="Someone prevents me from having my own money or resources.">
+                        <option value="Never">Never</option><option value="Sometimes">Sometimes</option><option value="Always">Always</option>
+                    </select>
+                </div>
+                <div class="question-box">
+                    <label class="question-text">11. Do you often feel blamed for problems that are not your fault?</label>
+                    <select class="q-input" data-template="I often feel blamed for problems that are not my fault.">
+                        <option value="Never">Never</option><option value="Sometimes">Sometimes</option><option value="Always">Always</option>
+                    </select>
+                </div>
+                <div class="question-box">
+                    <label class="question-text">12. Do you feel anxious/scared after interacting with this person?</label>
+                    <select class="q-input" data-template="I feel anxious, scared, and stressed after interacting with them.">
+                        <option value="Never">Never</option><option value="Sometimes">Sometimes</option><option value="Always">Always</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- SECTION B -->
+            <div class="section-header">
+                <h3>✅ Section B: Risk Indicators</h3>
+                <p>Indicators of vulnerability or lack of support systems.</p>
+            </div>
+            <div class="question-grid">
+                <div class="question-box">
+                    <label class="question-text">13. Do you find it difficult to say “no” even when uncomfortable?</label>
+                    <select class="q-input" data-template="I find it difficult to say no even when uncomfortable.">
+                        <option value="Never">Never</option><option value="Sometimes">Sometimes</option><option value="Always">Always</option>
+                    </select>
+                </div>
+                <div class="question-box">
+                    <label class="question-text">14. Do you easily trust people even when instincts say otherwise?</label>
+                    <select class="q-input" data-template="I easily trust people even when my instincts say otherwise.">
+                        <option value="Never">Never</option><option value="Sometimes">Sometimes</option><option value="Always">Always</option>
+                    </select>
+                </div>
+                <div class="question-box">
+                    <label class="question-text">15. Do you keep problems to yourself fearing no one will believe you?</label>
+                    <select class="q-input" data-template="I keep problems to myself because I fear no one will believe me.">
+                        <option value="Never">Never</option><option value="Sometimes">Sometimes</option><option value="Always">Always</option>
+                    </select>
+                </div>
+                <div class="question-box">
+                    <label class="question-text">16. Do you feel lonely or unsupported by friends or family?</label>
+                    <select class="q-input" data-template="I feel lonely and unsupported by friends or family.">
+                        <option value="Never">Never</option><option value="Sometimes">Sometimes</option><option value="Always">Always</option>
+                    </select>
+                </div>
+                <div class="question-box">
+                    <label class="question-text">17. Do you tend to stay in relationships even if they feel unhealthy?</label>
+                    <select class="q-input" data-template="I tend to stay in relationships even if they feel unhealthy.">
+                        <option value="Never">Never</option><option value="Sometimes">Sometimes</option><option value="Always">Always</option>
+                    </select>
+                </div>
+                <div class="question-box">
+                    <label class="question-text">18. Do you prefer not to report harmful behavior to avoid conflict?</label>
+                    <select class="q-input" data-template="I prefer not to report harmful behavior to avoid conflict or shame.">
+                        <option value="Never">Never</option><option value="Sometimes">Sometimes</option><option value="Always">Always</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- SECTION C -->
+            <div class="section-header">
+                <h3>✅ Section C: Violator Tendencies</h3>
+                <p>Screening for aggression, control, jealousy, and coercion.</p>
+            </div>
+            <div class="question-grid">
+                <div class="question-box">
+                    <label class="question-text">19. Do you get angry easily when your partner talks to others?</label>
+                    <select class="q-input" data-template="I get angry easily when my partner talks to other people.">
+                        <option value="Never">Never</option><option value="Sometimes">Sometimes</option><option value="Always">Always</option>
+                    </select>
+                </div>
+                <div class="question-box">
+                    <label class="question-text">20. Do you often check your partner’s phone without permission?</label>
+                    <select class="q-input" data-template="I often check my partner's phone and social media without permission.">
+                        <option value="Never">Never</option><option value="Sometimes">Sometimes</option><option value="Always">Always</option>
+                    </select>
+                </div>
+                <div class="question-box">
+                    <label class="question-text">21. Do you believe you should have the final say in decisions?</label>
+                    <select class="q-input" data-template="I believe I should have the final say in decisions in my relationship.">
+                        <option value="Never">Never</option><option value="Sometimes">Sometimes</option><option value="Always">Always</option>
+                    </select>
+                </div>
+                <div class="question-box">
+                    <label class="question-text">22. Do you sometimes raise your voice or use harsh words?</label>
+                    <select class="q-input" data-template="I sometimes raise my voice or use harsh words when upset.">
+                        <option value="Never">Never</option><option value="Sometimes">Sometimes</option><option value="Always">Always</option>
+                    </select>
+                </div>
+                <div class="question-box">
+                    <label class="question-text">23. Have you ever threatened someone to make them obey you?</label>
+                    <select class="q-input" data-template="I have threatened someone to make them obey me.">
+                        <option value="Never">Never</option><option value="Once">Once</option><option value="Multiple Times">Multiple Times</option>
+                    </select>
+                </div>
+                <div class="question-box">
+                    <label class="question-text">24. Do you feel justified in punishing someone if they disobey?</label>
+                    <select class="q-input" data-template="I feel justified in punishing someone if they disobey my rules.">
+                        <option value="No">No</option><option value="Yes">Yes</option>
+                    </select>
+                </div>
+                <div class="question-box">
+                    <label class="question-text">25. Have you ever forced/pressured someone into doing something?</label>
+                    <select class="q-input" data-template="I have forced or pressured someone into doing something they refused.">
+                        <option value="Never">Never</option><option value="Once">Once</option><option value="Multiple Times">Multiple Times</option>
+                    </select>
+                </div>
+                <div class="question-box">
+                    <label class="question-text">26. Do you think jealousy is a sign of love?</label>
+                    <select class="q-input" data-template="I believe jealousy is a sign of love.">
+                        <option value="No">No</option><option value="Yes">Yes</option>
+                    </select>
+                </div>
+                <div class="question-box">
+                    <label class="question-text">27. Do you sometimes blame others for your violent reactions?</label>
+                    <select class="q-input" data-template="I sometimes blame others for my anger or violent reactions.">
+                        <option value="Never">Never</option><option value="Sometimes">Sometimes</option><option value="Always">Always</option>
+                    </select>
+                </div>
+                <div class="question-box">
+                    <label class="question-text">28. Have people told you your behavior is “too controlling”?</label>
+                    <select class="q-input" data-template="People have told me that my behavior is too controlling or aggressive.">
+                        <option value="No">No</option><option value="Yes">Yes</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- SECTION D -->
+            <div class="section-header">
+                <h3>✅ Section D: General Behavioral Indicators</h3>
+                <p>Contextual factors used for AI clustering.</p>
+            </div>
+            <div class="question-grid">
+                <div class="question-box">
+                    <label class="question-text">29. Do you often feel UNSAFE at home or in your relationship?</label>
+                    <select class="q-input" data-template="I often feel unsafe at home or in my relationship.">
+                        <option value="Never">Never</option><option value="Sometimes">Sometimes</option><option value="Always">Always</option>
+                    </select>
+                </div>
+                <div class="question-box">
+                    <label class="question-text">30. Have you witnessed violence between family members?</label>
+                    <select class="q-input" data-template="I have witnessed violence between family members.">
+                        <option value="No">No</option><option value="Yes">Yes</option>
+                    </select>
+                </div>
+                <div class="question-box">
+                    <label class="question-text">31. Do you lack confidence in reporting abusive behavior?</label>
+                    <select class="q-input" data-template="I do not feel confident reporting abusive behavior.">
+                        <option value="No">No</option><option value="Yes">Yes</option>
+                    </select>
+                </div>
+                <div class="question-box">
+                    <label class="question-text">32. Do you know someone who may be experiencing abuse?</label>
+                    <select class="q-input" data-template="I know someone who may be experiencing abuse.">
+                        <option value="No">No</option><option value="Yes">Yes</option>
+                    </select>
+                </div>
+                <div class="question-box">
+                    <label class="question-text">33. Do arguments at home often become physical?</label>
+                    <select class="q-input" data-template="Arguments at home often become physical.">
+                        <option value="Never">Never</option><option value="Sometimes">Sometimes</option><option value="Always">Always</option>
+                    </select>
+                </div>
+                <div class="question-box">
+                    <label class="question-text">34. Do you feel pressured to act a certain way to avoid angering someone?</label>
+                    <select class="q-input" data-template="I feel pressured to act a certain way to avoid angering someone.">
+                        <option value="Never">Never</option><option value="Sometimes">Sometimes</option><option value="Always">Always</option>
+                    </select>
+                </div>
+            </div>
+
+            <button type="button" class="btn" onclick="goToReview()">Generate Report & Analyze ➡</button>
+        </form>
+    </div>
+
+    <!-- STEP 2: REVIEW -->
+    <div id="step-2" class="hidden">
+        <h2>🔍 Review Summary</h2>
+        <p>The system has compiled your answers into a narrative for the AI.</p>
+        <div id="review-list" style="background: #fff; padding: 20px; border: 1px solid #ddd; border-radius: 8px; max-height: 300px; overflow-y: auto;">
+            <!-- Answers appear here -->
+        </div>
+        <button type="button" class="btn" onclick="submitToAI()">🚀 Submit for Analysis</button>
+        <button type="button" class="btn btn-secondary" onclick="goBack()">⬅ Edit Answers</button>
+    </div>
+
+    <!-- STEP 3: SUBMISSION SUCCESS (User View) -->
+    <div id="step-3" class="hidden">
+        <div class="success-box">
+            <div class="checkmark-circle">✔</div>
+            <h2 style="color: #059669; margin-bottom: 10px;">Assessment Submitted</h2>
+            <p style="font-size: 1.1em; color: #4b5563; line-height: 1.6;">
+                Your responses have been successfully encrypted and sent to our analysis system.
+            </p>
+            <p style="color: #6b7280; margin-top: 15px; font-size: 0.95em;">
+                An administrator will review the results shortly. Your data is kept confidential.
+            </p>
+            
+            <div style="background-color: #fff1f2; border: 1px solid #fecaca; padding: 15px; border-radius: 8px; margin-top: 30px; text-align: left;">
+                <strong style="color: #be123c;">⚠️ Emergency Support</strong>
+                <p style="margin: 5px 0 0 0; color: #881337; font-size: 0.9em;">
+                    If you are in immediate danger, do not wait for results. Call 911 or your local emergency hotline immediately.
+                </p>
+            </div>
+
+            <button type="button" class="btn" onclick="location.reload()">Return Home</button>
+        </div>
+    </div>
+
+</div>
+
+<!-- ADMIN LOGIN MODAL -->
+<div id="adminModal" class="modal">
+    <div class="modal-content">
+        <h3>🔒 Admin Login</h3>
+        <input type="password" id="adminPass" placeholder="Enter Password">
+        <br>
+        <button class="btn" style="margin-top:10px; padding:10px;" onclick="checkAdmin()">Login</button>
+        <button class="btn btn-secondary" style="margin-top:10px; padding:10px;" onclick="closeAdminModal()">Cancel</button>
+    </div>
+</div>
+
+<script>
+    // --- ADMIN LOGIC ---
+    function openAdminModal() { document.getElementById('adminModal').style.display = 'block'; }
+    function closeAdminModal() { document.getElementById('adminModal').style.display = 'none'; }
+    
+    function checkAdmin() {
+        const pass = document.getElementById('adminPass').value;
+        if (pass === "admin123") {
+            window.location.href = "admin.html"; // Redirect to Dashboard
+        } else {
+            alert("❌ Incorrect Password");
+        }
+    }
+
+    // --- QUIZ LOGIC ---
+    let groupedAnswers = {}; 
+
+    function goToReview() {
+        const selects = document.querySelectorAll('.q-input');
+        const reviewList = document.getElementById('review-list');
+        reviewList.innerHTML = "";
+        groupedAnswers = {}; 
+        let hasRisk = false;
+
+        selects.forEach((select) => {
+            const answer = select.value;
+            const template = select.getAttribute('data-template');
+            
+            // Look for the Section Name
+            let sectionName = "General";
+            let sectionHeader = select.closest('.question-grid').previousElementSibling;
+            if(sectionHeader && sectionHeader.classList.contains('section-header')) {
+                sectionName = sectionHeader.querySelector('h3').innerText.replace("✅ ", "");
+            }
+
+            // Initialize Array for Section
+            if (!groupedAnswers[sectionName]) groupedAnswers[sectionName] = [];
+
+            if (answer !== "Never" && answer !== "No") {
+                hasRisk = true;
+                
+                // Weight Logic
+                let weight = 1; 
+                if (answer === "Always" || answer === "Multiple Times") weight = 3; 
+
+                groupedAnswers[sectionName].push({ text: template, weight: weight });
+                
+                // Add to Review List
+                const p = document.createElement('div');
+                p.style.marginBottom = "10px";
+                p.style.paddingBottom = "10px";
+                p.style.borderBottom = "1px solid #eee";
+                
+                const color = weight === 3 ? "#dc2626" : "#ea580c";
+                const qText = select.previousElementSibling.innerText;
+                
+                p.innerHTML = `<strong style="color:${color};">⚠️ ${sectionName}:</strong> ${qText} <br> Answer: <b>${answer}</b>`;
+                reviewList.appendChild(p);
+            }
+        });
+
+        if (!hasRisk) {
+            reviewList.innerHTML = "<p style='color:green; text-align:center;'>✅ No high-risk indicators selected.</p>";
+        }
+
+        document.getElementById('step-1').classList.add('hidden');
+        document.getElementById('step-2').classList.remove('hidden');
+    }
+
+    function goBack() {
+        document.getElementById('step-2').classList.add('hidden');
+        document.getElementById('step-1').classList.remove('hidden');
+    }
+
+    async function submitToAI() {
+        // Show loading logic if you wanted, but here we just switch to Step 3 immediately
+        // while the fetch happens in background, OR wait for fetch.
+        // Better to wait for fetch so we know it saved.
+        
+        try {
+            const response = await fetch('http://127.0.0.1:5000/analyze', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ grouped_answers: groupedAnswers })
+            });
+
+            if (response.ok) {
+                // Show SUCCESS Message (User View)
+                document.getElementById('step-2').classList.add('hidden');
+                document.getElementById('step-3').classList.remove('hidden');
+            } else {
+                alert("Server Error. Please try again.");
+            }
+
+        } catch (error) {
+            console.error(error);
+            alert("❌ Connection Error: Make sure 'api.py' is running in the background.");
+        }
+    }
+</script>
+
+</body>
+</html>
